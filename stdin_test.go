@@ -1,5 +1,8 @@
 package main
 
+//go:generate mkdir -p mocks/iboolmocks
+//go:generate mockgen -source $GOPATH/pkg/mod/github.com/reservoird/ibool@v1.0.0/ibool.go -package iboolmocks -destination mocks/iboolmocks/ibool_mock.go
+
 import (
 	"bufio"
 	"fmt"
@@ -13,7 +16,7 @@ func TestConfig(t *testing.T) {
 	if err != nil {
 		t.Errorf("expecting nil but got error: %v", err)
 	}
-	if s.keepRunning.value() == false {
+	if s.keepRunning.Val() == false {
 		t.Errorf("expecting true but got false")
 	}
 }
@@ -30,7 +33,7 @@ func newboolbridgetest() *boolbridgetest {
 	return b
 }
 
-func (o *boolbridgetest) value() bool {
+func (o *boolbridgetest) Val() bool {
 	val := o.val
 	if o.count == 1 {
 		o.val = false

@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/reservoird/ibool"
 )
 
 // needed to aid in unit testing
@@ -15,21 +17,17 @@ type ireader interface {
 	ReadString(byte) (string, error)
 }
 
-type ibool interface {
-	value() bool
-}
-
 type boolbridge struct {
 }
 
-func (o *boolbridge) value() bool {
+func (o *boolbridge) Val() bool {
 	return true
 }
 
 type stdin struct {
 	Timestamp   bool
 	reader      ireader
-	keepRunning ibool
+	keepRunning ibool.IBool
 }
 
 // Config configures ingester
@@ -56,7 +54,7 @@ func (o *stdin) Config(cfg string) error {
 
 // Ingest reads data from stdin and writes it to a channel
 func (o *stdin) Ingest(channel chan<- []byte) error {
-	for o.keepRunning.value() == true {
+	for o.keepRunning.Val() == true {
 		line, err := o.reader.ReadString('\n')
 		if err != nil {
 			if err != io.EOF {

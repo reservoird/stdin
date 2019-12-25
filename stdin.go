@@ -15,14 +15,21 @@ type ireader interface {
 	ReadString(byte) (string, error)
 }
 
-type stdin struct {
-	Timestamp bool
-	reader    ireader
-	run       func() bool
+type ibool interface {
+	value() bool
 }
 
-func forever() bool {
+type boolbridge struct {
+}
+
+func (o *boolbridge) value() bool {
 	return true
+}
+
+type stdin struct {
+	Timestamp   bool
+	reader      ireader
+	keepRunning ibool
 }
 
 // Config configures ingester
@@ -30,7 +37,7 @@ func (o *stdin) Config(cfg string) error {
 	// default
 	o.Timestamp = false
 	o.reader = bufio.NewReader(os.Stdin)
-	o.run = forever
+	o.keepRunning = &boolbridge{}
 
 	if cfg != "" {
 		b, err := ioutil.ReadFile(cfg)
@@ -49,7 +56,7 @@ func (o *stdin) Config(cfg string) error {
 
 // Ingest reads data from stdin and writes it to a channel
 func (o *stdin) Ingest(channel chan<- []byte) error {
-	for o.run() == true {
+	for o.keepRunning.value() == true {
 		line, err := o.reader.ReadString('\n')
 		if err != nil {
 			if err != io.EOF {

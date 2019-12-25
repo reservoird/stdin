@@ -13,20 +13,29 @@ func TestConfig(t *testing.T) {
 	if err != nil {
 		t.Errorf("expecting nil but got error: %v", err)
 	}
-	if s.run() == false {
+	if s.keepRunning.value() == false {
 		t.Errorf("expecting true but got false")
 	}
 }
 
-var flag bool = true
-var timesCount int = 0
+type boolbridgetest struct {
+	count int
+	val   bool
+}
 
-func times() bool {
-	val := flag
-	if timesCount == 1 {
-		flag = false
+func newboolbridgetest() *boolbridgetest {
+	b := new(boolbridgetest)
+	b.count = 0
+	b.val = true
+	return b
+}
+
+func (o *boolbridgetest) value() bool {
+	val := o.val
+	if o.count == 1 {
+		o.val = false
 	}
-	timesCount = timesCount + 1
+	o.count = o.count + 1
 	return val
 }
 
@@ -36,9 +45,7 @@ func TestDigest(t *testing.T) {
 	if err != nil {
 		t.Errorf("expecting nil but got error: %v", err)
 	}
-	flag = true
-	timesCount = 0
-	s.run = times
+	s.keepRunning = newboolbridgetest()
 	s.reader = bufio.NewReader(strings.NewReader("hello\nhello\n"))
 	expected := []byte("hello\n")
 	dst := make(chan []byte, 2)
@@ -56,21 +63,21 @@ func TestDigest(t *testing.T) {
 	}
 }
 
-type bufrdtst struct {
+type bufreadtest struct {
 	count int
 	str   string
 }
 
-func newbufrdtst(str string) *bufrdtst {
-	b := new(bufrdtst)
+func newbufreadtest(str string) *bufreadtest {
+	b := new(bufreadtest)
 	b.count = 0
 	b.str = str
 	return b
 }
 
-func (b *bufrdtst) ReadString(delim byte) (string, error) {
+func (b *bufreadtest) ReadString(delim byte) (string, error) {
 	if b.count == 1 {
-		return "", fmt.Errorf("test error")
+		return "", fmt.Errorf("mock error")
 	}
 	b.count = b.count + 1
 	return b.str, nil
@@ -82,10 +89,8 @@ func TestDigestError(t *testing.T) {
 	if err != nil {
 		t.Errorf("expecting nil but got error: %v", err)
 	}
-	flag = true
-	timesCount = 0
-	s.run = times
-	s.reader = newbufrdtst("hello\n")
+	s.keepRunning = newboolbridgetest()
+	s.reader = newbufreadtest("hello\n")
 	dst := make(chan []byte, 2)
 	err = s.Ingest(dst)
 	if err == nil {

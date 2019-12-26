@@ -7,20 +7,18 @@ import (
 )
 
 type stdin struct {
-	run  bool
-	done <-chan struct{}
-	wg   *sync.WaitGroup
+	run bool
 }
 
 // Config configures ingester
-func (o *stdin) Config(cfg string, done <-chan struct{}, wg *sync.WaitGroup) error {
-	o.done = done
-	o.wg = wg
+func (o *stdin) Config(cfg string) error {
 	return nil
 }
 
 // Ingest reads data from stdin and writes it to a channel
-func (o *stdin) Ingest(channel chan<- []byte) error {
+func (o *stdin) Ingest(channel chan<- []byte, done <-chan struct{}, wg *sync.WaitGroup) error {
+	defer wg.Done()
+
 	reader := bufio.NewReader(os.Stdin)
 	for o.run == true {
 		line, err := reader.ReadString('\n')
@@ -30,7 +28,7 @@ func (o *stdin) Ingest(channel chan<- []byte) error {
 		channel <- []byte(line)
 
 		select {
-		case <-o.done:
+		case <-done:
 			o.run = false
 		default:
 		}

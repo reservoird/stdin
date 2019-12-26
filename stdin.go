@@ -20,6 +20,7 @@ func (o *stdin) Ingest(channel chan<- []byte, done <-chan struct{}, wg *sync.Wai
 	defer wg.Done()
 
 	reader := bufio.NewReader(os.Stdin)
+	o.run = true
 	for o.run == true {
 		line, err := reader.ReadString('\n')
 		if err != nil {

@@ -1,4 +1,2 @@
-github.com/julienschmidt/httprouter v1.3.0 h1:U0609e9tgbseu3rBINet9P48AI/D3oJs4dN7jwJOQ1U=
-github.com/julienschmidt/httprouter v1.3.0/go.mod h1:JR6WtHb+2LUe8TCKY3cZOxFyyO8IZAc4RVcycCCAKdM=
-github.com/reservoird/reservoird v0.0.0-20191227024204-43770630c518 h1:rpQPIL3QuYuw6+er1A+V7qDShwDH/A27SpKiOGE3NYY=
-github.com/reservoird/reservoird v0.0.0-20191227024204-43770630c518/go.mod h1:a9Qs9hXvGYZPm+RIuaEfejQEF/+yNDYyf0S3wA0aMMU=
+github.com/reservoird/icd v0.0.0-20191227033345-fef56a64b09c h1:Gf2Y8Nw5+azmJhQ59qvZNokiQanDPRrOlT+8RMJ9rKU=
+github.com/reservoird/icd v0.0.0-20191227033345-fef56a64b09c/go.mod h1:GU5QGJu2Bc0QOKU0LJ+IvPXknbc3duDV0W3f1WknHoM=

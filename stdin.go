@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/reservoird/reservoird/run"
+	"github.com/reservoird/icd"
 )
 
 type stdin struct {
@@ -18,7 +18,7 @@ func (o *stdin) Config(cfg string) error {
 }
 
 // Ingest reads data from stdin and writes it to a channel
-func (o *stdin) Ingest(queue run.Queue, done <-chan struct{}, wg *sync.WaitGroup) error {
+func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup) error {
 	defer wg.Done()
 
 	reader := bufio.NewReader(os.Stdin)

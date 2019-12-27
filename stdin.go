@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"os"
 	"sync"
+
+	"github.com/reservoird/reservoird/run"
 )
 
 type stdin struct {
@@ -16,7 +18,7 @@ func (o *stdin) Config(cfg string) error {
 }
 
 // Ingest reads data from stdin and writes it to a channel
-func (o *stdin) Ingest(channel chan<- []byte, done <-chan struct{}, wg *sync.WaitGroup) error {
+func (o *stdin) Ingest(queue run.Queue, done <-chan struct{}, wg *sync.WaitGroup) error {
 	defer wg.Done()
 
 	reader := bufio.NewReader(os.Stdin)
@@ -26,7 +28,10 @@ func (o *stdin) Ingest(channel chan<- []byte, done <-chan struct{}, wg *sync.Wai
 		if err != nil {
 			return err
 		}
-		channel <- []byte(line)
+		err = queue.Push([]byte(line))
+		if err != nil {
+			return err
+		}
 
 		select {
 		case <-done:

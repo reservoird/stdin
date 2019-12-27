@@ -46,6 +46,3 @@ func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 	}
 	return nil
 }
-
-// Ingester for stdin
-var Ingester stdin

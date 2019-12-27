@@ -12,6 +12,11 @@ type stdin struct {
 	run bool
 }
 
+// NewIngester is what reservoird to create and start stdin
+func NewIngester() (icd.Ingester, error) {
+	return new(stdin), nil
+}
+
 // Config configures ingester
 func (o *stdin) Config(cfg string) error {
 	return nil

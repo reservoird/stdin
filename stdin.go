@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"sync"
 
@@ -20,7 +19,6 @@ func (o *stdin) Config(cfg string) error {
 
 // Ingest reads data from stdin and writes it to a channel
 func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup) error {
-	fmt.Printf("stdin.ingest: into\n")
 	defer wg.Done()
 
 	reader := bufio.NewReader(os.Stdin)
@@ -30,9 +28,7 @@ func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		if err != nil {
 			return err
 		}
-		fmt.Printf("stdin.ingest: before push\n")
 		err = queue.Push([]byte(line))
-		fmt.Printf("stdin.ingest: after push\n")
 		if err != nil {
 			return err
 		}
@@ -43,7 +39,6 @@ func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		default:
 		}
 	}
-	fmt.Printf("stdin.ingest: outof\n")
 	return nil
 }
 

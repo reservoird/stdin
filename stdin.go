@@ -57,15 +57,16 @@ func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 	for o.run == true {
 		line, err := reader.ReadString('\n')
 		if err != nil {
-			return err
-		}
-		if line != "" {
-			if o.Timestamp == true {
-				line = fmt.Sprintf("[%s %s] ", o.Name(), time.Now().Format(time.RFC3339)) + line
-			}
-			err = queue.Put([]byte(line))
-			if err != nil {
-				return err
+			fmt.Printf("%v", err)
+		} else {
+			if line != "" {
+				if o.Timestamp == true {
+					line = fmt.Sprintf("[%s %s] ", o.Name(), time.Now().Format(time.RFC3339)) + line
+				}
+				err = queue.Put([]byte(line))
+				if err != nil {
+					fmt.Printf("%v", err)
+				}
 			}
 		}
 
@@ -73,6 +74,7 @@ func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		case <-done:
 			o.run = false
 		default:
+			time.Sleep(time.Second)
 		}
 	}
 	return nil

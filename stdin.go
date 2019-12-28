@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"sync"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 
 type stdin struct {
 	run       bool
-	Name      string
+	Tag       string
 	Timestamp bool
 }
 
@@ -34,9 +35,17 @@ func (o *stdin) Config(cfg string) error {
 	if err != nil {
 		return err
 	}
-	o.Name = s.Name
+	o.Tag = s.Tag
 	o.Timestamp = s.Timestamp
 	return nil
+}
+
+// Name return the name of the Ingester
+func (o *stdin) Name() string {
+	if o.Tag == "" {
+		return fmt.Sprintf(reflect.TypeOf(*o).String())
+	}
+	return o.Tag
 }
 
 // Ingest reads data from stdin and writes it to a channel

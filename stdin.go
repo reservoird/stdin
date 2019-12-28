@@ -26,17 +26,21 @@ func NewIngester() (icd.Ingester, error) {
 
 // Config configures ingester
 func (o *stdin) Config(cfg string) error {
-	d, err := ioutil.ReadFile(cfg)
-	if err != nil {
-		return err
+	o.Tag = "stdin"
+	o.Timestamp = false
+	if cfg != "" {
+		d, err := ioutil.ReadFile(cfg)
+		if err != nil {
+			return err
+		}
+		s := stdin{}
+		err = json.Unmarshal(d, &s)
+		if err != nil {
+			return err
+		}
+		o.Tag = s.Tag
+		o.Timestamp = s.Timestamp
 	}
-	s := stdin{}
-	err = json.Unmarshal(d, &s)
-	if err != nil {
-		return err
-	}
-	o.Tag = s.Tag
-	o.Timestamp = s.Timestamp
 	return nil
 }
 

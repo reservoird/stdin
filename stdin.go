@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"reflect"
 	"sync"
 	"time"
 
@@ -46,9 +45,6 @@ func (o *stdin) Config(cfg string) error {
 
 // Name return the name of the Ingester
 func (o *stdin) Name() string {
-	if o.Tag == "" {
-		return fmt.Sprintf(reflect.TypeOf(*o).String())
-	}
 	return o.Tag
 }
 

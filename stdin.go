@@ -74,7 +74,7 @@ func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		case <-done:
 			o.run = false
 		default:
-			time.Sleep(time.Second)
+			time.Sleep(time.Millisecond)
 		}
 	}
 	return nil

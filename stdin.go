@@ -67,7 +67,7 @@ func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 			if o.Timestamp == true {
 				line = fmt.Sprintf("[%s %s] ", o.Name(), time.Now().Format(time.RFC3339)) + line
 			}
-			err = queue.Push([]byte(line))
+			err = queue.Put([]byte(line))
 			if err != nil {
 				return err
 			}

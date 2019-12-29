@@ -51,7 +51,7 @@ func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 	for o.run == true {
 		line, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Printf("%v", err)
+			fmt.Printf("%v\n", err)
 		} else {
 			if line != "" {
 				if o.Timestamp == true {
@@ -59,7 +59,7 @@ func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 				}
 				err = queue.Put([]byte(line))
 				if err != nil {
-					fmt.Printf("%v", err)
+					fmt.Printf("%v\n", err)
 				}
 			}
 		}

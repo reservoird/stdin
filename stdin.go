@@ -18,29 +18,25 @@ type stdin struct {
 	Timestamp bool
 }
 
-// NewIngester is what reservoird to create and start stdin
-func NewIngester() (icd.Ingester, error) {
-	return new(stdin), nil
-}
-
-// Config configures ingester
-func (o *stdin) Config(cfg string) error {
+// New is what reservoird to create and start stdin
+func New(cfg string) (icd.Ingester, error) {
+	o := &stdin{}
 	o.Tag = "stdin"
 	o.Timestamp = false
 	if cfg != "" {
 		d, err := ioutil.ReadFile(cfg)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		s := stdin{}
 		err = json.Unmarshal(d, &s)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		o.Tag = s.Tag
 		o.Timestamp = s.Timestamp
 	}
-	return nil
+	return o, nil
 }
 
 // Name return the name of the Ingester

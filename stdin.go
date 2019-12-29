@@ -20,21 +20,19 @@ type stdin struct {
 
 // New is what reservoird to create and start stdin
 func New(cfg string) (icd.Ingester, error) {
-	o := &stdin{}
-	o.Tag = "stdin"
-	o.Timestamp = false
+	o := &stdin{
+		Tag:       "stdin",
+		Timestamp: false,
+	}
 	if cfg != "" {
 		d, err := ioutil.ReadFile(cfg)
 		if err != nil {
 			return nil, err
 		}
-		s := stdin{}
-		err = json.Unmarshal(d, &s)
+		err = json.Unmarshal(d, o)
 		if err != nil {
 			return nil, err
 		}
-		o.Tag = s.Tag
-		o.Timestamp = s.Timestamp
 	}
 	return o, nil
 }

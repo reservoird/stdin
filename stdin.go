@@ -13,14 +13,17 @@ import (
 )
 
 type stdin struct {
+	stats     chan<- string
 	run       bool
 	Tag       string
 	Timestamp bool
 }
 
 // New is what reservoird to create and start stdin
-func New(cfg string) (icd.Ingester, error) {
+func New(cfg string, stats chan<- string) (icd.Ingester, error) {
 	o := &stdin{
+		stats:     stats,
+		run:       true,
 		Tag:       "stdin",
 		Timestamp: false,
 	}

@@ -31,7 +31,7 @@ type stdin struct {
 // New is what reservoird uses to create and start stdin
 func New(cfg string, statsChan chan<- string) (icd.Ingester, error) {
 	c := stdinCfg{
-		Name:      "stdin",
+		Name:      "com.reservoird.ingest.stdin",
 		Timestamp: false,
 	}
 	if cfg != "" {

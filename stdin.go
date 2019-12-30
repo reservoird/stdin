@@ -12,17 +12,20 @@ import (
 	"github.com/reservoird/icd"
 )
 
+// StdinCfg contains config
 type StdinCfg struct {
 	Name      string
 	Timestamp bool
 }
 
+// StdinStats contains stats
 type StdinStats struct {
 	MessagesReceived uint64
 	MessagesSent     uint64
 	Running          bool
 }
 
+// Stdin contains what is needed for ingester
 type Stdin struct {
 	cfg       StdinCfg
 	run       bool

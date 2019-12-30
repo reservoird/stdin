@@ -61,17 +61,17 @@ func (o *Stdin) Name() string {
 }
 
 // Stats returns marshalled stats NOTE: thread safe
-func (o *Stdin) Stats() string {
+func (o *Stdin) Stats() (string, error) {
 	select {
 	case stats := <-o.statsChan:
 		data, err := json.Marshal(stats)
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			return "", err
 		}
-		return string(data)
+		return string(data), nil
 	default:
+		return "", nil
 	}
-	return ""
 }
 
 // ClearStats clears stats NOTE: thread safe

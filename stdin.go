@@ -12,25 +12,27 @@ import (
 	"github.com/reservoird/icd"
 )
 
-type stdinCfg struct {
+type StdinCfg struct {
 	Name      string
 	Timestamp bool
 }
 
-type stdinStats struct {
-	MsgsRead uint64
-	Active   bool
+type StdinStats struct {
+	MessagesReceived uint64
+	MessagesSent     uint64
+	Running          bool
 }
 
-type stdin struct {
-	cfg       stdinCfg
-	stats     stdinStats
-	statsChan chan<- string
+type Stdin struct {
+	cfg       StdinCfg
+	run       bool
+	statsChan chan StdinStats
+	clearChan chan struct{}
 }
 
 // New is what reservoird uses to create and start stdin
-func New(cfg string, statsChan chan<- string) (icd.Ingester, error) {
-	c := stdinCfg{
+func New(cfg string) (icd.Ingester, error) {
+	c := StdinCfg{
 		Name:      "com.reservoird.ingest.stdin",
 		Timestamp: false,
 	}
@@ -44,31 +46,56 @@ func New(cfg string, statsChan chan<- string) (icd.Ingester, error) {
 			return nil, err
 		}
 	}
-	o := &stdin{
+	o := &Stdin{
 		cfg:       c,
-		stats:     stdinStats{},
-		statsChan: statsChan,
+		run:       true,
+		statsChan: make(chan StdinStats),
+		clearChan: make(chan struct{}),
 	}
 	return o, nil
 }
 
 // Name return the name of the Ingester
-func (o *stdin) Name() string {
+func (o *Stdin) Name() string {
 	return o.cfg.Name
 }
 
+// Stats returns marshalled stats NOTE: thread safe
+func (o *Stdin) Stats() string {
+	select {
+	case stats := <-o.statsChan:
+		data, err := json.Marshal(stats)
+		if err != nil {
+			fmt.Printf("%v\n", err)
+		}
+		return string(data)
+	default:
+	}
+	return ""
+}
+
+// ClearStats clears stats NOTE: thread safe
+func (o *Stdin) ClearStats() {
+	select {
+	case o.clearChan <- struct{}{}:
+	default:
+	}
+}
+
 // Ingest reads data from stdin and writes it to the queue
-func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup) error {
+func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup) error {
 	defer wg.Done() // required
 
+	stats := StdinStats{}
+
 	reader := bufio.NewReader(os.Stdin)
-	o.stats.Active = true
-	for o.stats.Active == true {
+	o.run = true
+	for o.run == true {
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Printf("%v\n", err)
 		} else {
-			o.stats.MsgsRead = o.stats.MsgsRead + 1
+			stats.MessagesReceived = stats.MessagesReceived + 1
 			if queue.Closed() == false {
 				if len(line) != 0 {
 					if o.cfg.Timestamp == true {
@@ -77,23 +104,31 @@ func (o *stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 					err = queue.Put([]byte(line))
 					if err != nil {
 						fmt.Printf("%v\n", err)
+					} else {
+						stats.MessagesSent = stats.MessagesSent + 1
 					}
 				}
 			}
 		}
 
+		// listens for clear stats
 		select {
-		case <-done:
-			o.stats.Active = false
+		case <-o.clearChan:
+			stats = StdinStats{}
 		default:
 		}
 
-		stats, err := json.Marshal(o.stats)
-		if err != nil {
-			fmt.Printf("%v\n", err)
-		}
+		// listens for shutdown
 		select {
-		case o.statsChan <- string(stats):
+		case <-done:
+			o.run = false
+		default:
+		}
+
+		// sends latest stats
+		stats.Running = o.run
+		select {
+		case o.statsChan <- stats:
 		default:
 		}
 

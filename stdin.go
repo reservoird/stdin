@@ -51,8 +51,8 @@ func New(cfg string) (icd.Ingester, error) {
 	}
 	o := &Stdin{
 		cfg:       c,
-		statsChan: make(chan StdinStats),
-		clearChan: make(chan struct{}),
+		statsChan: make(chan StdinStats, 1),
+		clearChan: make(chan struct{}, 1),
 	}
 	return o, nil
 }

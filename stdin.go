@@ -29,7 +29,6 @@ type StdinStats struct {
 // Stdin contains what is needed for ingester
 type Stdin struct {
 	cfg       StdinCfg
-	stats     StdinStats
 	statsChan chan StdinStats
 	clearChan chan struct{}
 }
@@ -52,7 +51,6 @@ func New(cfg string) (icd.Ingester, error) {
 	}
 	o := &Stdin{
 		cfg:       c,
-		stats:     StdinStats{},
 		statsChan: make(chan StdinStats),
 		clearChan: make(chan struct{}),
 	}
@@ -107,7 +105,7 @@ func (o *Stdin) Monitor(statsChan chan<- string, clearChan <-chan struct{}, done
 			default:
 			}
 		}
-
+		time.Sleep(time.Second)
 	}
 }
 

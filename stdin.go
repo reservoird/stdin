@@ -20,6 +20,7 @@ type StdinCfg struct {
 
 // StdinStats contains stats
 type StdinStats struct {
+	Name             string
 	MessagesReceived uint64
 	MessagesSent     uint64
 	Running          bool
@@ -120,6 +121,7 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 	reader := bufio.NewReader(os.Stdin)
 
 	run := true
+	stats.Name = o.cfg.Name
 	stats.Running = run
 	for run == true {
 		line, err := reader.ReadString('\n')
@@ -146,6 +148,7 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		select {
 		case <-o.clearChan:
 			stats = StdinStats{}
+			stats.Name = o.cfg.Name
 			stats.Running = run
 		default:
 		}

@@ -105,7 +105,10 @@ func (o *Stdin) Monitor(statsChan chan<- string, clearChan <-chan struct{}, done
 			default:
 			}
 		}
-		time.Sleep(time.Second)
+
+		if monrun == true {
+			time.Sleep(time.Second)
+		}
 	}
 }
 
@@ -161,7 +164,9 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		default:
 		}
 
-		time.Sleep(time.Millisecond)
+		if run == true {
+			time.Sleep(time.Millisecond)
+		}
 	}
 	return nil
 }

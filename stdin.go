@@ -123,6 +123,14 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 	run := true
 	stats.Name = o.cfg.Name
 	stats.Running = run
+
+	// stdin blocks so send message early
+
+	select {
+	case o.statsChan <- stats:
+	default:
+	}
+
 	for run == true {
 		line, err := reader.ReadString('\n')
 		if err != nil {

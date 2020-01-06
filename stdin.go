@@ -30,6 +30,7 @@ type StdinStats struct {
 // Stdin contains what is needed for ingester
 type Stdin struct {
 	cfg       StdinCfg
+	run       bool
 	statsChan chan StdinStats
 	clearChan chan struct{}
 }
@@ -52,6 +53,7 @@ func New(cfg string) (icd.Ingester, error) {
 	}
 	o := &Stdin{
 		cfg:       c,
+		run:       false,
 		statsChan: make(chan StdinStats, 1),
 		clearChan: make(chan struct{}, 1),
 	}
@@ -113,6 +115,11 @@ func (o *Stdin) Monitor(statsChan chan<- string, clearChan <-chan struct{}, done
 	}
 }
 
+// Running states wheter or not ingest is running
+func (o *Stdin) Running() bool {
+	return o.run
+}
+
 // Ingest reads data from stdin and writes it to the queue
 func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup) error {
 	defer wg.Done() // required
@@ -120,9 +127,9 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 	stats := StdinStats{}
 	reader := bufio.NewReader(os.Stdin)
 
-	run := true
+	o.run = true
 	stats.Name = o.cfg.Name
-	stats.Running = run
+	stats.Running = o.run
 
 	// stdin blocks so send message early
 
@@ -131,7 +138,7 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 	default:
 	}
 
-	for run == true {
+	for o.run == true {
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Printf("%v\n", err)
@@ -157,15 +164,15 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		case <-o.clearChan:
 			stats = StdinStats{}
 			stats.Name = o.cfg.Name
-			stats.Running = run
+			stats.Running = o.run
 		default:
 		}
 
 		// listens for shutdown
 		select {
 		case <-done:
-			run = false
-			stats.Running = run
+			o.run = false
+			stats.Running = o.run
 		default:
 		}
 
@@ -175,7 +182,7 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		default:
 		}
 
-		if run == true {
+		if o.run == true {
 			time.Sleep(time.Millisecond)
 		}
 	}

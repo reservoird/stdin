@@ -162,9 +162,16 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		// clear stats
 		select {
 		case <-o.clearChan:
-			stats = StdinStats{}
-			stats.Name = o.cfg.Name
-			stats.Running = o.run
+			stats = StdinStats{
+				Name:    o.cfg.Name,
+				Running: o.run,
+			}
+		default:
+		}
+
+		// send to monitor
+		select {
+		case o.statsChan <- stats:
 		default:
 		}
 
@@ -173,12 +180,8 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		case <-done:
 			o.run = false
 			stats.Running = o.run
-		default:
-		}
-
-		// send to monitor
-		select {
-		case o.statsChan <- stats:
+			// send final stats blocking
+			o.statsChan <- stats
 		default:
 		}
 

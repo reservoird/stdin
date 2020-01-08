@@ -121,7 +121,7 @@ func (o *Stdin) Running() bool {
 }
 
 // Ingest reads data from stdin and writes it to the queue
-func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup) error {
+func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup) {
 	defer wg.Done() // required
 
 	stats := StdinStats{}
@@ -189,5 +189,4 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 			time.Sleep(time.Millisecond)
 		}
 	}
-	return nil
 }

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/reservoird/icd"
@@ -29,10 +28,8 @@ type StdinStats struct {
 
 // Stdin contains what is needed for ingester
 type Stdin struct {
-	cfg       StdinCfg
-	run       bool
-	statsChan chan StdinStats
-	clearChan chan struct{}
+	cfg StdinCfg
+	run bool
 }
 
 // New is what reservoird uses to create and start stdin
@@ -52,10 +49,8 @@ func New(cfg string) (icd.Ingester, error) {
 		}
 	}
 	o := &Stdin{
-		cfg:       c,
-		run:       false,
-		statsChan: make(chan StdinStats, 1),
-		clearChan: make(chan struct{}, 1),
+		cfg: c,
+		run: false,
 	}
 	return o, nil
 }
@@ -65,76 +60,26 @@ func (o *Stdin) Name() string {
 	return o.cfg.Name
 }
 
-// Monitor provides stats and clear stats
-func (o *Stdin) Monitor(statsChan chan<- string, clearChan <-chan struct{}, doneChan <-chan struct{}, wg *sync.WaitGroup) {
-	defer wg.Done() // required
-
-	stats := StdinStats{}
-	monrun := true
-	for monrun == true {
-		// clear
-		select {
-		case <-clearChan:
-			select {
-			case o.clearChan <- struct{}{}:
-			default:
-			}
-		default:
-		}
-
-		// done
-		select {
-		case <-doneChan:
-			monrun = false
-			stats.Monitoring = monrun
-		default:
-		}
-
-		// get stats from ingest
-		select {
-		case stats = <-o.statsChan:
-			stats.Monitoring = monrun
-		default:
-		}
-
-		// marshal
-		data, err := json.Marshal(stats)
-		if err != nil {
-			fmt.Printf("%v\n", err)
-		} else {
-			// send stats to reservoird
-			select {
-			case statsChan <- string(data):
-			default:
-			}
-		}
-
-		if monrun == true {
-			time.Sleep(time.Millisecond)
-		}
-	}
-}
-
 // Running states wheter or not ingest is running
 func (o *Stdin) Running() bool {
 	return o.run
 }
 
 // Ingest reads data from stdin and writes it to the queue
-func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup) {
-	defer wg.Done() // required
+func (o *Stdin) Ingest(queue icd.Queue, mc *icd.MonitorControl) {
+	defer mc.WaitGroup.Done() // required
 
-	stats := StdinStats{}
 	reader := bufio.NewReader(os.Stdin)
 
 	o.run = true
+
+	stats := StdinStats{}
 	stats.Name = o.cfg.Name
 	stats.Running = o.run
 
 	// stdin blocks so send message early
-
 	select {
-	case o.statsChan <- stats:
+	case mc.StatsChan <- stats:
 	default:
 	}
 
@@ -161,7 +106,7 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 
 		// clear stats
 		select {
-		case <-o.clearChan:
+		case <-mc.ClearChan:
 			stats = StdinStats{
 				Name:    o.cfg.Name,
 				Running: o.run,
@@ -169,19 +114,19 @@ func (o *Stdin) Ingest(queue icd.Queue, done <-chan struct{}, wg *sync.WaitGroup
 		default:
 		}
 
-		// send to monitor
+		// send stats
 		select {
-		case o.statsChan <- stats:
+		case mc.StatsChan <- stats:
 		default:
 		}
 
 		// listens for shutdown
 		select {
-		case <-done:
+		case <-mc.DoneChan:
 			o.run = false
 			stats.Running = o.run
 			// send final stats blocking
-			o.statsChan <- stats
+			mc.StatsChan <- stats
 		default:
 		}
 

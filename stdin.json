@@ -1,5 +1,5 @@
 {
   "name": "stdin",
-  "sleepDuration": "1s",
+  "sleepDuration": "1ms",
   "timestamp": true
 }

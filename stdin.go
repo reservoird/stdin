@@ -133,5 +133,5 @@ func (o *Stdin) Ingest(queue icd.Queue, mc *icd.MonitorControl) {
 	}
 
 	// send final stats blocking
-	mc.StatsChan <- stats
+	mc.FinalStatsChan <- stats
 }

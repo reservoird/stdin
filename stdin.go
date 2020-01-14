@@ -135,6 +135,6 @@ func (o *Stdin) Ingest(queue icd.Queue, mc *icd.MonitorControl) {
 	// send final stats
 	select {
 	case mc.StatsChan <- stats:
-	default:
+	case <-time.After(time.Second):
 	}
 }

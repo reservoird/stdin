@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/reservoird/icd"
@@ -127,9 +128,7 @@ func (o *Stdin) Ingest(queue icd.Queue, mc *icd.MonitorControl) {
 		default:
 		}
 
-		if o.run == true {
-			time.Sleep(time.Millisecond)
-		}
+		runtime.Gosched()
 	}
 
 	// send final stats blocking

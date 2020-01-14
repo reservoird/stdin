@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"runtime"
 	"time"
 
 	"github.com/reservoird/icd"
@@ -14,8 +13,9 @@ import (
 
 // StdinCfg contains config
 type StdinCfg struct {
-	Name      string
-	Timestamp bool
+	Name          string
+	SleepDuration string
+	Timestamp     bool
 }
 
 // StdinStats contains stats
@@ -28,15 +28,17 @@ type StdinStats struct {
 
 // Stdin contains what is needed for ingester
 type Stdin struct {
-	cfg StdinCfg
-	run bool
+	cfg   StdinCfg
+	sleep time.Duration
+	run   bool
 }
 
 // New is what reservoird uses to create and start stdin
 func New(cfg string) (icd.Ingester, error) {
 	c := StdinCfg{
-		Name:      "com.reservoird.ingest.stdin",
-		Timestamp: false,
+		Name:          "com.reservoird.ingest.stdin",
+		SleepDuration: "1s",
+		Timestamp:     false,
 	}
 	if cfg != "" {
 		d, err := ioutil.ReadFile(cfg)
@@ -48,9 +50,14 @@ func New(cfg string) (icd.Ingester, error) {
 			return nil, err
 		}
 	}
+	sleep, err := time.ParseDuration(c.SleepDuration)
+	if err != nil {
+		return nil, fmt.Errorf("error parsing sleep duration")
+	}
 	o := &Stdin{
-		cfg: c,
-		run: false,
+		cfg:   c,
+		sleep: sleep,
+		run:   false,
 	}
 	return o, nil
 }
@@ -125,10 +132,8 @@ func (o *Stdin) Ingest(queue icd.Queue, mc *icd.MonitorControl) {
 		case <-mc.DoneChan:
 			o.run = false
 			stats.Running = o.run
-		default:
+		case <-time.After(o.sleep):
 		}
-
-		runtime.Gosched()
 	}
 
 	// send final stats blocking

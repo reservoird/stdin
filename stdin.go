@@ -132,9 +132,6 @@ func (o *Stdin) Ingest(queue icd.Queue, mc *icd.MonitorControl) {
 		}
 	}
 
-	// send final stats
-	select {
-	case mc.StatsChan <- stats:
-	case <-time.After(time.Second):
-	}
+	// send final stats blocking
+	mc.StatsChan <- stats
 }

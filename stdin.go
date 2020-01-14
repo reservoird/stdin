@@ -23,7 +23,6 @@ type StdinStats struct {
 	MessagesReceived uint64
 	MessagesSent     uint64
 	Running          bool
-	Monitoring       bool
 }
 
 // Stdin contains what is needed for ingester

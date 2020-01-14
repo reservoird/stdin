@@ -123,7 +123,6 @@ func (o *Stdin) Ingest(queue icd.Queue, mc *icd.MonitorControl) {
 		// listens for shutdown
 		select {
 		case <-mc.DoneChan:
-			fmt.Printf("stdin.done\n")
 			o.run = false
 			stats.Running = o.run
 		default:
